@@ -1,9 +1,9 @@
 name: CI
 on:
   pull_request:
-    branches: [develop]
+    branches: [develop, master]
   push:
-    branches: [develop]
+    branches: [develop, master]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,9 +39,11 @@ jobs:
         with:
           name: build
           path: build
-      - uses: actions/download-artifact@v2
-        with:
-          name: my-artifact
+      - name: Create a Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: npx sematic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to Staging
         if: github.event_name == 'push'
         run: npx surge --project ./build --domain vague-zinc.surge.sh
